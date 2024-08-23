@@ -19,33 +19,36 @@ def read_arguments():
     # Instantiate parser
     parser = argparse.ArgumentParser(prog="Prediction of antimicrobial activity for peptide sequences",
                                      description="This program recieves a fasta file as input, featurizes the molecules using MolE, then makes predictions of antimicrobial activity",
-                                     usage="python inference_script.py [options]")
+                                     usage="python inference_script.py fasta_filepath outpath [options]")
     # Input FASTA
-    parser.add_argument("-f", "--fasta_filepath", help="Complete path to input FASTA file.")
+    parser.add_argument("fasta_filepath", help="Complete path to input FASTA file.")
+
+    # Output file
+    parser.add_argument("outpath", help="Complete path for output file")
 
     # XGBoost model
-    parser.add_argument("-x", "--xgboost_model", help="Path to the pickled XGBoost model that makes predictions (.pkl).")
+    parser.add_argument("-x", "--xgboost_model", help="Path to the pickled XGBoost model that makes predictions (.pkl). Default set to: xgboost_models/MolE-XGBoost-08.03.2024_14.20.pkl",
+                        default="xgboost_models/MolE-XGBoost-08.03.2024_14.20.pkl")
 
     # MolE model
-    parser.add_argument("-m", "--mole_model", help="Path to the directory containing the config.yaml and model.pth files of the pre-trained MolE chemical representation.")
+    parser.add_argument("-m", "--mole_model", help="Path to the directory containing the config.yaml and model.pth files of the pre-trained MolE chemical representation. Default set to: mole_pretrained/model_ginconcat_btwin_100k_d8000_l0.0001",
+                        default="mole_pretrained/model_ginconcat_btwin_100k_d8000_l0.0001")
 
     # Device
-    parser.add_argument("-d", "--device", help="Device where the pre-trained model is loaded. Can be cpu, cuda, auto. If auto then cuda:0 device is selected if a GPU is detected.",
+    parser.add_argument("-d", "--device", help="Device where the pre-trained model is loaded. Can be one of ['cpu', 'cuda', 'auto']. If 'auto' (default) then cuda:0 device is selected if a GPU is detected.",
                         default="auto")
 
     # Maier Strains information
-    parser.add_argument("-s", "--strain_categories", help="Path to the Maier et.al. screening results.",
+    parser.add_argument("-s", "--strain_categories", help="Path to the Maier et.al. screening results. Default is set to ./maier_information/maier_screening_results.tsv.gz ",
                         default = "./maier_information/maier_screening_results.tsv.gz")
     
     # Additional information about the bacteria
-    parser.add_argument("-g", "--gram_information", help="Path to strain metadata.",
+    parser.add_argument("-g", "--gram_information", help="Path to strain metadata. Default is set to ./maier_information/strain_info_SF2.xlsx",
                         default = "./maier_information/strain_info_SF2.xlsx")
 
     # Indicate whether you want to aggregate the scores
     parser.add_argument("-a", "--aggregate_scores", help="Flag variable. If called, then prediction scores are aggregated by compound using as the antimicrobial potential of each compound.",
                         action="store_true")
-
-    parser.add_argument("-o", "--outpath", help="Complete path for output file")
 
     # Parse arguments
     args = parser.parse_args()
