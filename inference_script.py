@@ -26,6 +26,10 @@ def read_arguments():
     # Output file
     parser.add_argument("outpath", help="Complete path for output file")
 
+    # Indicate whether you want to aggregate the scores
+    parser.add_argument("-a", "--aggregate_scores", help="Flag variable. If called, then prediction scores are aggregated by compound using as the antimicrobial potential of each compound.",
+                        action="store_true")
+
     # XGBoost model
     parser.add_argument("-x", "--xgboost_model", help="Path to the pickled XGBoost model that makes predictions (.pkl). Default set to: xgboost_models/MolE-XGBoost-08.03.2024_14.20.pkl",
                         default="xgboost_models/MolE-XGBoost-08.03.2024_14.20.pkl")
@@ -33,10 +37,6 @@ def read_arguments():
     # MolE model
     parser.add_argument("-m", "--mole_model", help="Path to the directory containing the config.yaml and model.pth files of the pre-trained MolE chemical representation. Default set to: mole_pretrained/model_ginconcat_btwin_100k_d8000_l0.0001",
                         default="mole_pretrained/model_ginconcat_btwin_100k_d8000_l0.0001")
-
-    # Device
-    parser.add_argument("-d", "--device", help="Device where the pre-trained model is loaded. Can be one of ['cpu', 'cuda', 'auto']. If 'auto' (default) then cuda:0 device is selected if a GPU is detected.",
-                        default="auto")
 
     # Maier Strains information
     parser.add_argument("-s", "--strain_categories", help="Path to the Maier et.al. screening results. Default is set to ./maier_information/maier_screening_results.tsv.gz ",
@@ -46,9 +46,9 @@ def read_arguments():
     parser.add_argument("-g", "--gram_information", help="Path to strain metadata. Default is set to ./maier_information/strain_info_SF2.xlsx",
                         default = "./maier_information/strain_info_SF2.xlsx")
 
-    # Indicate whether you want to aggregate the scores
-    parser.add_argument("-a", "--aggregate_scores", help="Flag variable. If called, then prediction scores are aggregated by compound using as the antimicrobial potential of each compound.",
-                        action="store_true")
+    # Device
+    parser.add_argument("-d", "--device", help="Device where the pre-trained model is loaded. Can be one of ['cpu', 'cuda', 'auto']. If 'auto' (default) then cuda:0 device is selected if a GPU is detected.",
+                        default="auto")
 
     # Parse arguments
     args = parser.parse_args()
