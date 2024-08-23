@@ -78,7 +78,7 @@ optional arguments:
 The models provided are set as deaults. Therefore you only need to indicate the input fasta file and the output file names. 
 
 
-### Example
+## Example
 
 In order to make strain-level predictions of antimicrobial activity, execute the following command.  
 
