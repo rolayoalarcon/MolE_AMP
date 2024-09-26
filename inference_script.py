@@ -46,6 +46,14 @@ def read_arguments():
     parser.add_argument("-g", "--gram_information", help="Path to strain metadata. Default is set to ./maier_information/strain_info_SF2.xlsx",
                         default = "./maier_information/strain_info_SF2.xlsx")
 
+    # Antimicrobial score threshold    
+    parser.add_argument("-t", "--app_threshold", help="threshold score to binarize compound-microbe predictions. Default from original publication.",
+                        default=0.04374140128493309)
+    
+    # Broad spectrum threshold
+    parser.add_argument("-k", "--min_nkill", help="Minimum number of microbes predicted to be inhibited in order to consider broad spectrum antibiotic.",
+                        default=10)
+
     # Device
     parser.add_argument("-d", "--device", help="Device where the pre-trained model is loaded. Can be one of ['cpu', 'cuda', 'auto']. If 'auto' (default) then cuda:0 device is selected if a GPU is detected.",
                         default="auto")
@@ -197,17 +205,19 @@ def antimicrobial_potential(score_df, strain_filepath):
     # Aggregate complete antimicrobial potential
     # Antimicrobial score
     apscore_total = pred_df.groupby("chem_id")["1"].apply(gmean).to_frame().rename(columns={"1": "apscore_total"})
-    #apscore_total["apscore_total"] = np.log(apscore_total["apscore_total"])
 
     # Antimicrobial score by gram stain
     apscore_gram = pred_df.groupby(["chem_id", "gram_stain"])["1"].apply(gmean).unstack().rename(columns={"negative": "apscore_gnegative",
                                                                                                          "positive": "apscore_gpositive"})
-    #apscore_gram["apscore_gnegative"] = np.log(apscore_gram["apscore_gnegative"])
-    #apscore_gram["apscore_gpositive"] = np.log(apscore_gram["apscore_gpositive"])
+    
+    # Number inhibited strains
+    inhibted_total = pred_df.groupby("chem_id")["growth_inhibition"].sum().to_frame().rename(columns={"growth_inhibition": "ginhib_total"})
 
-
+    # Number inhibited strains per stain
+    inhibted_gram = pred_df.groupby(["chem_id", "gram_stain"])["growth_inhibition"].sum().unstack().rename(columns={"negative": "ginhib_gnegative",
+                                                                                                                    "positive": "ginhib_gpositive"})
     # Merge the results
-    agg_pred = apscore_total.join(apscore_gram)
+    agg_pred = apscore_total.join(apscore_gram).join(inhibted_total).join(inhibted_gram)
 
     return agg_pred
 
@@ -230,8 +240,10 @@ def main():
 
     # Make predictions
     y_pred = model_abx.predict_proba(X_input)
-
     pred_df = pd.DataFrame(y_pred, columns = ["0", "1"], index=X_input.index)
+
+    # Binarize predictions using threshold
+    pred_df["growth_inhibition"] = pred_df["1"].apply(lambda x: 1 if x >= args.app_threshold else 0)
 
     # Determine if results should be aggregated
     if(args.aggregate_scores):
@@ -240,6 +252,11 @@ def main():
         pred_df = pred_df.reset_index()
 
         agg_df = antimicrobial_potential(pred_df, args.gram_information)
+
+        # Determine if chemical is broad spectrum
+        agg_df["broad_spectrum"] = agg_df["ginhib_total"].apply(lambda x: 1 if x >= args.min_nkill else 0)
+
+        # Write file
         agg_df.to_csv(args.outpath, sep='\t')
     
     else:
