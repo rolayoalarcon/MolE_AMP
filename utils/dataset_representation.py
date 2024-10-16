@@ -235,21 +235,18 @@ def load_pretrained_model(pretrained_model, device="cuda:0"):
 
     return model
 
-def process_dataset(fasta_filepath, pretrained_model, device="cuda:0"):
+def process_dataset(fasta_dict, pretrained_model, device="cuda:0"):
     """
     Process the dataset to generate molecular representations.
 
     Parameters:
-    - fasta_filepath (str): Path to the FASTA file.
+    - fasta_dict (str): Amino acid (AA) sequences are stored in a dictionary {header: sequence}, where all "X" amino acids are removed from sequence.
     - pretrained_model (str): Name of the pre-trained model. Can also be "MolCLR" or "ECFP4".
     - device (str): Device to use for computation (default is "cuda:0"). Can also be "cpu".
 
     Returns:
     - udl_representation (pandas.DataFrame): DataFrame containing molecular representations.
     """
-
-    # Read the FASTA file into a dictionary. 
-    fasta_dict = read_fasta(fasta_filepath)
 
     # Now we load our pretrained model
     pmodel = load_pretrained_model(pretrained_model, device=device)

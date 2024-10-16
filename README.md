@@ -96,15 +96,16 @@ $ python inference_script.py example/input/test_fasta.faa example/output/predict
 The output can be seen in `example/output/prediction_strains.tsv`.  
   
 
-| pred_id | 0 | 1 | growth_inhibition |
-| ------- | - | - | ----------------- |
-| WP_002558051.1:Akkermansia muciniphila | 0.93703735 | 0.06296267 | 1 |
-| WP_002558051.1:Escherichia coli ED1a (NT5078) | 0.98663974 | 0.013360276 | 1 |
+| pred_id | 0 | 1 | growth_inhibition | AA_sequence |
+| ------- | - | - | ----------------- | ----------- |
+| WP_002558051.1:Akkermansia muciniphila | 0.93703735 | 0.06296267 | 1 | MKVRASLKKRTPECKIVRRNGRLYVINKKNPKYKQRQG |
+| WP_002558051.1:Escherichia coli ED1a (NT5078) | 0.98663974 | 0.013360276 | 1 | MKVRASLKKRTPECKIVRRNGRLYVINKKNPKYKQRQG |
 
 - **pred_id**: Indicates the protein - microbe combination for which the prediction is made.
 - **0**: Indicates the prediction score for the protein _not_ having activity against the microbe.
 - **1**: Indicates the prediction score fot the protein _having_ antimicrobial activity against the microbe.
-- **growth_inhibition**: A binary column indicating whether the compound is predicted to inhibit the microbe's growth (1) or not (0). This is acheived by threshold the values of column **1** using a pre-determined score threshold. By default, the same threshold used in our publication is applied. This might not be appropriate for AMPs.
+- **growth_inhibition**: A binary column indicating whether the compound is predicted to inhibit the microbe's growth (1) or not (0). This is acheived by threshold the values of column **1** using a pre-determined score threshold. By default, the same threshold used in our publication is applied. This might not be appropriate for AMPs.  
+- **AA_sequence**: The input amino acid sequence for which predictions are made.
   
   
 Predictions can be aggregated to get **Antimicrobial Potential scores** for each compound by using the `-a` flag.  
@@ -117,10 +118,10 @@ $ python inference_script.py example/input/test_fasta.faa example/output/predict
   
 The output is saved to `example/output/prediction_aggregated.tsv`.  
   
-| chem_id | apscore_total | apscore_gnegative | apscore_gpositive | ginhib_total | ginhib_gnegative | ginhib_gpositive | broad_spectrum |
-| ------- | ------------- | ----------------- | ----------------- | ------------ | ---------------- | ---------------- | -------------- |
-| DBAASPR_11 | 0.17025694 | 0.10979764 | 0.24376883 | 36 | 14 |	22 |	1 |
-| DBAASPR_14 | 0.27378127 | 0.1664661 | 0.41133404 | 36 | 15 | 21 |	1 |
+| chem_id | apscore_total | apscore_gnegative | apscore_gpositive | ginhib_total | ginhib_gnegative | ginhib_gpositive | broad_spectrum | AA_sequence |
+| ------- | ------------- | ----------------- | ----------------- | ------------ | ---------------- | ---------------- | -------------- | ----------- |
+| DBAASPR_11 | 0.17025694 | 0.10979764 | 0.24376883 | 36 | 14 |	22 |	1 | RVKRVWPLVIRTVIAGYNLYRAIKKK |
+| DBAASPR_14 | 0.27378127 | 0.1664661 | 0.41133404 | 36 | 15 | 21 |	1 |  GIWDTIKSMGKVFAGKILQNL |
 
 - **chem_id**: Is identifier of each protein.
 - **apscore_total**: Is the aggregated Antimicrobial Potential score of each protein.
@@ -130,3 +131,4 @@ The output is saved to `example/output/prediction_aggregated.tsv`.
 - **ginhib_gpositive**: Is the total amount Gram Positive strains that are predicted to be inhibited by each protein.
 - **ginhib_gnegative**: Is the total amount Gram Negative strains that are predicted to be inhibited by each protein.
 - **broad_spectrum**: Is a binary column indicating whether the protein is predicted to be a broad spectrum antimicrobial (1) or not (0). This is done by thresholding the total amount of strains predicted to be inhibited (**ginhib_total**). By default if a protein is predicted to inhibit $\geq$ 10 strains, then it is predicted to have broad spectrum activity.
+- **AA_sequence**: The input amino acid sequence for which predictions are made.

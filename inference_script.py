@@ -9,7 +9,7 @@ from scipy.stats.mstats import gmean
 
 from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBClassifier
-from utils.dataset_representation import process_dataset
+from utils.dataset_representation import process_dataset, read_fasta
 
 def read_arguments():
     """
@@ -227,8 +227,11 @@ def main():
     # Parse the arguments
     args = read_arguments()
 
+    # Read the FASTA file as dictionary
+    fasta_dictionary = read_fasta(args.fasta_filepath)
+
     # Obtain MolE pre-trained representation
-    udl_representation = process_dataset(fasta_filepath = args.fasta_filepath, 
+    udl_representation = process_dataset(fasta_dict = fasta_dictionary, 
                                         pretrained_model = args.mole_model, 
                                         device=args.device)
 
@@ -244,23 +247,31 @@ def main():
 
     # Binarize predictions using threshold
     pred_df["growth_inhibition"] = pred_df["1"].apply(lambda x: 1 if x >= args.app_threshold else 0)
+    pred_df = pred_df.reset_index()
 
     # Determine if results should be aggregated
     if(args.aggregate_scores):
         print("Aggregating Antimicrobial potential")
-
-        pred_df = pred_df.reset_index()
-
         agg_df = antimicrobial_potential(pred_df, args.gram_information)
 
         # Determine if chemical is broad spectrum
         agg_df["broad_spectrum"] = agg_df["ginhib_total"].apply(lambda x: 1 if x >= args.min_nkill else 0)
 
+        # Add the AA sequence
+        agg_df = agg_df.reset_index() 
+        agg_df["AA_sequence"] = agg_df["chem_id"].apply(fasta_dictionary.get)
+
         # Write file
-        agg_df.to_csv(args.outpath, sep='\t')
+        agg_df.to_csv(args.outpath, sep='\t', index=False)
     
     else:
-        pred_df.to_csv(args.outpath, sep='\t')
+
+        # Add AA sequence column
+        pred_df["chem_id"] = pred_df["pred_id"].str.split(":", expand=True)[0]
+        pred_df["AA_sequence"] = pred_df["chem_id"].apply(fasta_dictionary.get)
+        pred_df = pred_df.drop(columns="chem_id")
+
+        pred_df.to_csv(args.outpath, sep='\t', index=False)
 
 if __name__ == "__main__":
     main()
